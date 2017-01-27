@@ -1,0 +1,16 @@
+{
+  "name": "skvn/database",
+  "description": "",
+  "license": "MIT",
+  "homepage": "",
+  "require": {
+    "php": ">=7.0.0",
+    "skvn/base": "dev-master"
+  },
+  "autoload": {
+    "psr-4": {
+      "Skvn\\Database\\": ""
+    }
+  },
+  "minimum-stability": "dev"
+}

@@ -31,7 +31,7 @@ class Connection
 
     public function query()
     {
-        return new Query\Builder($this);
+        return new QueryBuilder($this);
     }
 
     public function selectOne($query, $bindings = [])
@@ -55,14 +55,29 @@ class Connection
         }
     }
 
-    public function insert($table, $values = [])
+    public function insert($table, $values)
     {
-        return $this->table($table)->insert($values);
+        $id = $this->table($table)->insert($values);
+        $this->events->trigger(new Events\Insert([
+            'table' => $table,
+            'values' => $values,
+            'new_id' => $id
+        ]));
+        return $id;
     }
 
-    public function update($query, $bindings = [])
+    public function update($table, $values, $pk)
     {
-        return $this->affectingStatement($query, $bindings);
+        $id = $values[$pk];
+        $query = $this->table($table)->where($pk, '=', $id);
+        unset($values[$pk]);
+        $rows = $query->update($values);
+        $this->events->trigger(new Events\Update([
+            'table' => $table,
+            'id' => $id,
+            'values' => $values
+        ]));
+        return $rows;
     }
 
     public function delete($query, $bindings = [])

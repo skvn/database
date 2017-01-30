@@ -33,7 +33,7 @@ class Dispatcher
                 PDO::ATTR_STRINGIFY_FETCHES => false,
                 PDO::ATTR_EMULATE_PREPARES => false,
             ];
-            $options = array_merge($options, $config['options'] ?? []);
+            $options = ($config['options'] ?? []) + $options;
             try {
                 $pdo = new PDO($config['dsn'], $config['username'], $config['password'], $options);
                 if (!empty($config['charset'])) {

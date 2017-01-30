@@ -568,18 +568,92 @@ class QueryBuilder
         return $having['boolean'].' '.$column.' '.$having['operator'].' '.$parameter;
     }
 
+    public function count($columns = '*')
+    {
+        return (int) $this->aggregate('count', [$columns]);
+    }
+
+    public function min($column)
+    {
+        return $this->aggregate('min', [$column]);
+    }
+
+    public function max($column)
+    {
+        return $this->aggregate('max', [$column]);
+    }
+
+    public function sum($column)
+    {
+        $result = $this->aggregate('sum', [$column]);
+
+        return $result ?: 0;
+    }
+
+    public function avg($column)
+    {
+        return $this->aggregate('avg', [$column]);
+    }
+
+    public function average($column)
+    {
+        return $this->avg($column);
+    }
+
+    public function aggregate($function, $columns = ['*'])
+    {
+        $q = clone($this);
+        $q->columns = [];
+        $q->setAggregate($function, $columns);
+        $row = $q->one();
+        if ($row) {
+            $val = $row['aggregate'];
+            if (is_numeric($val)) {
+                if (is_int($val) || is_float($val)) {
+                    return $val;
+                }
+                if (strpos($val, '.') !== false) {
+                    return floatval($val);
+                } else {
+                    return intval($val);
+                }
+            }
+            return $row['aggregate'];
+        }
+        return 0;
+    }
+
+    public function numericAggregate($function, $columns = ['*'])
+    {
+        $result = $this->aggregate($function, $columns);
+
+
+        if (is_int($result) || is_float($result)) {
+            return $result;
+        }
+
+        return strpos((string) $result, '.') === false
+            ? (int) $result : (float) $result;
+    }
+
+    protected function setAggregate($function, $columns)
+    {
+        $this->aggregate = compact('function', 'columns');
+        return $this;
+    }
+
+
 
 
     protected function compileAggregate()
     {
-        return '';
-        $column = $this->columnize($aggregate['columns']);
+        $column = $this->compileColumnList($this->aggregate['columns']);
 
-        if ($query->distinct && $column !== '*') {
+        if ($this->distinct && $column !== '*') {
             $column = 'distinct '.$column;
         }
 
-        return 'select '.$aggregate['function'].'('.$column.') as aggregate';
+        return 'select '.$this->aggregate['function'].'('.$column.') as aggregate';
     }
 
 

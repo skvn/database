@@ -121,9 +121,10 @@ class Connection
             if ($bindings === false) {
                 $this->affectedRows = $this->pdo->exec($query);
             } else {
+                list($query, $bindings) = $this->flatArrayBindings($query, $bindings);
                 $statement = $this->pdo->prepare($query);
                 $statement->setFetchMode(PDO :: FETCH_ASSOC);
-                $this->bindValues($statement, $this->prepareBindings($bindings));
+                $this->bindValues($statement, $bindings);
                 $statement->execute();
                 $this->affectedRows = $statement->rowCount();
             }
@@ -136,6 +137,21 @@ class Connection
         $evt['time'] = round(microtime(true) - $t, 4);
         $this->events->trigger(new Events\QueryExecuted($evt));
         return $statement;
+    }
+
+    protected function flatArrayBindings($query, $bindings)
+    {
+        if (strpos($query, '(?)') === false) {
+            return [$query, $bindings];
+        }
+        for ($i=0; $i<count($bindings); $i++) {
+            if (is_array($bindings[$i])) {
+                $r = $bindings[$i];
+                array_splice($bindings, $i, 1, $r);
+                return $this->flatArrayBindings($query, $bindings);
+            }
+        }
+        return [$query, $bindings];
     }
 
 
@@ -163,23 +179,6 @@ class Connection
     public function quote($value)
     {
         return $this->pdo->quote($value);
-    }
-
-
-    public function prepareBindings(array $bindings)
-    {
-        return $bindings;
-        $grammar = $this->getQueryGrammar();
-
-        foreach ($bindings as $key => $value) {
-            if ($value instanceof DateTimeInterface) {
-                $bindings[$key] = $value->format($grammar->getDateFormat());
-            } elseif ($value === false) {
-                $bindings[$key] = 0;
-            }
-        }
-
-        return $bindings;
     }
 
     public function disconnect()
@@ -222,32 +221,5 @@ class Connection
 
 
 
-//    protected function causedByDeadlock($message)
-//    {
-//        return StringHelper :: contains([
-//            'Deadlock found when trying to get lock',
-//            'deadlock detected',
-//            'The database file is locked',
-//            'A table in the database is locked',
-//            'has been chosen as the deadlock victim',
-//        ], $message);
-//    }
-//
-//
-//    protected function causedByLostConnection($message)
-//    {
-//        return StringHelper :: contains([
-//            'server has gone away',
-//            'no connection to the server',
-//            'Lost connection',
-//            'is dead or not enabled',
-//            'Error while sending',
-//            'decryption failed or bad record mac',
-//            'server closed the connection unexpectedly',
-//            'SSL connection has been closed unexpectedly',
-//            'Error writing data to the connection',
-//            'Resource deadlock avoided',
-//        ], $message);
-//    }
 
 }

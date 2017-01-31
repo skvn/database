@@ -3,6 +3,7 @@
 namespace Skvn\Database;
 
 use PDO;
+use PDOStatement;
 use Closure;
 use Exception;
 use PDOException;
@@ -37,13 +38,17 @@ class Connection
     public function selectOne($query, $bindings = [])
     {
         $statement = $this->execute($query, $bindings);
-        return $statement->fetch();
+        $row = $statement->fetch();
+        $statement->closeCursor();
+        return $row;
     }
 
     public function select($query, $bindings = [])
     {
         $statement = $this->execute($query, $bindings);
-        return $statement->fetchAll();
+        $rows = $statement->fetchAll();
+        $statement->closeCursor();
+        return $rows;
     }
 
     public function iterator($query, $bindings = [])
@@ -66,7 +71,7 @@ class Connection
         return $id;
     }
 
-    public function update($table, $values, $pk)
+    public function update($table, $values, $pk = 'id')
     {
         $id = $values[$pk];
         $query = $this->table($table)->where($pk, '=', $id);
@@ -80,14 +85,17 @@ class Connection
         return $rows;
     }
 
-    public function delete($query, $bindings = [])
+    public function delete($table, $id, $pk = 'id')
     {
-        return $this->affectingStatement($query, $bindings);
+        return $this->table($table)->where($pk, $id)->delete();
     }
 
     public function statement($query, $bindings = [])
     {
-        $this->execute($query, $bindings);
+        $statement = $this->execute($query, $bindings);
+        if ($statement instanceof PDOStatement) {
+            $statement->closeCursor();
+        }
     }
 
     public function affectingStatement($query, $bindings = [])
@@ -122,7 +130,7 @@ class Connection
                 $this->affectedRows = $this->pdo->exec($query);
             } else {
                 list($query, $bindings) = $this->flatArrayBindings($query, $bindings);
-                $statement = $this->pdo->prepare($query);
+                $statement = $this->pdo->prepare($query, [PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true]);
                 $statement->setFetchMode(PDO :: FETCH_ASSOC);
                 $this->bindValues($statement, $bindings);
                 $statement->execute();

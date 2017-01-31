@@ -812,6 +812,26 @@ class QueryBuilder
         return implode(', ', $columns);
     }
 
+    public function delete()
+    {
+        $this->connection->statement($this->compileDelete(), $this->queryBindings);
+        return $this->connection->getAffectedRows();
+    }
+
+    protected function compileDelete()
+    {
+        $table = $this->quoteTable($this->from);
+        $where =  $this->compileWheres();
+        $order = $this->compileOrders();
+        $limit = !empty($this->limit) ? $this->compileLimit() : "";
+        if (empty($where)) {
+            throw new InvaidArgumentException('Delete without where cannot be done within query builder');
+        }
+        return trim("delete from {$table} {$where} {$order} {$limit}");
+    }
+
+
+
 
 
 
@@ -1003,6 +1023,27 @@ class QueryBuilder
 
         return true;
     }
+
+    public function chunkById($count, callable $callback, $column = 'id', $alias = null)
+    {
+        $alias = $alias ?: $column;
+        $lastId = 0;
+        do {
+            $clone = clone $this;
+            $results = $clone->forPageAfterId($count, $lastId, $column)->get();
+            $countResults = count($results);
+            if ($countResults == 0) {
+                break;
+            }
+            if ($callback($results) === false) {
+                return false;
+            }
+            $lastId = end($results)[$alias];
+        } while ($countResults == $count);
+
+        return true;
+    }
+
 
     public function each(callable $callback, $count = 1000)
     {

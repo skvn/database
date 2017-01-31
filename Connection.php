@@ -46,9 +46,7 @@ class Connection
     public function select($query, $bindings = [])
     {
         $statement = $this->execute($query, $bindings);
-        $rows = $statement->fetchAll();
-        $statement->closeCursor();
-        return $rows;
+        return $statement->fetchAll();
     }
 
     public function iterator($query, $bindings = [])
@@ -58,6 +56,7 @@ class Connection
         while ($record = $statement->fetch()) {
             yield $record;
         }
+        $statement->closeCursor();
     }
 
     public function insert($table, $values)

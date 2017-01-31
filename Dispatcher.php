@@ -31,8 +31,7 @@ class Dispatcher
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                 //PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
                 PDO::ATTR_STRINGIFY_FETCHES => false,
-                PDO::ATTR_EMULATE_PREPARES => false,
-                PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true
+                PDO::ATTR_EMULATE_PREPARES => false
             ];
             $options = ($config['options'] ?? []) + $options;
             try {

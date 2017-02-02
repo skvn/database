@@ -129,6 +129,8 @@ class Connection
                 $this->affectedRows = $this->pdo->exec($query);
             } else {
                 list($query, $bindings) = $this->flatArrayBindings($query, $bindings);
+                $evt['query']= $query;
+                $evt['bindings'] = $bindings;
                 $statement = $this->pdo->prepare($query, [PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true]);
                 $statement->setFetchMode(PDO :: FETCH_ASSOC);
                 $this->bindValues($statement, $bindings);
@@ -155,6 +157,11 @@ class Connection
             if (is_array($bindings[$i])) {
                 $r = $bindings[$i];
                 array_splice($bindings, $i, 1, $r);
+                if (empty($r)) {
+                    $query = preg_replace('#\(\?\)#', '(0)', $query, 1);
+                } else {
+                    $query = preg_replace('#\(\?\)#', '(' . implode(', ', array_fill(0, count($r), '?')) . ')', $query, 1);
+                }
                 return $this->flatArrayBindings($query, $bindings);
             }
         }

@@ -16,6 +16,7 @@ abstract class Entity implements \ArrayAccess
     protected $primaryKey = 'id';
     protected $connectionName = 'default';
     protected $timestamps = false;
+    protected $queryClass = EntityQuery :: class;
 
 
     protected $connection;
@@ -142,14 +143,12 @@ abstract class Entity implements \ArrayAccess
         if (array_key_exists($key, $this->relations)) {
             return $this->relations[$key];
         }
-        if (!array_key_exists($key, $this->relations)) {
-            if (method_exists($this, $key)) {
-                $relation = $this->$key();
-                if (! $relation instanceof Relation) {
-                    throw new ImplementationException('Relationship method must return a relation object ');
-                }
-                $this->relations[$key] = $relation->getResults();
+        if (method_exists($this, $key)) {
+            $relation = $this->$key();
+            if (! $relation instanceof Relations\Relation) {
+                throw new ImplementationException('Relationship method must return a relation object ');
             }
+            $this->relations[$key] = $relation->getModels();
         }
         return $this->relations[$key] ?? null;
     }
@@ -343,7 +342,8 @@ abstract class Entity implements \ArrayAccess
 
     public function newQuery()
     {
-        $builder = new EntityQuery($this->getConnection()->query());
+        $class = $this->queryClass;
+        $builder = new $class($this->getConnection()->query());
         return $builder->setModel($this)/*->with($this->with)*/;
 
         return $builder;
@@ -479,6 +479,84 @@ abstract class Entity implements \ArrayAccess
         $this->connection = $conn;
         return $this;
     }
+
+    function hasOne($relatedClass, $link = null)
+    {
+        return new Relations\HasOne($this, $relatedClass, $link);
+    }
+
+    function belongsTo($relatedClass, $link = null)
+    {
+        return new Relations\BelongsTo($this, $relatedClass, $link);
+    }
+
+    function hasMany($relatedClass, $link = null)
+    {
+        return new Relations\HasMany($this, $relatedClass, $link);
+    }
+
+    public function hasMany2($related, $foreignKey = null, $localKey = null)
+    {
+        $instance = $this->newRelatedInstance($related);
+
+        $foreignKey = $foreignKey ?: $this->getForeignKey();
+
+        $localKey = $localKey ?: $this->getKeyName();
+
+        return new HasMany(
+            $instance->newQuery(), $this, $instance->getTable().'.'.$foreignKey, $localKey
+        );
+    }
+
+
+    public function hasOne2($related, $foreignKey = null, $localKey = null)
+    {
+        $instance = $this->newRelatedInstance($related);
+
+        $foreignKey = $foreignKey ?: $this->getForeignKey();
+
+        $localKey = $localKey ?: $this->getKeyName();
+
+        return new HasOne($instance->newQuery(), $this, $instance->getTable().'.'.$foreignKey, $localKey);
+    }
+
+    public function belongsTo2($related, $foreignKey = null, $ownerKey = null, $relation = null)
+    {
+        // If no relation name was given, we will use this debug backtrace to extract
+        // the calling method's name and use that as the relationship name as most
+        // of the time this will be what we desire to use for the relationships.
+        if (is_null($relation)) {
+            $relation = $this->guessBelongsToRelation();
+        }
+
+        $instance = $this->newRelatedInstance($related);
+
+        // If no foreign key was supplied, we can use a backtrace to guess the proper
+        // foreign key name by using the name of the relationship function, which
+        // when combined with an "_id" should conventionally match the columns.
+        if (is_null($foreignKey)) {
+            $foreignKey = Str::snake($relation).'_'.$instance->getKeyName();
+        }
+
+        // Once we have the foreign key names, we'll just create a new Eloquent query
+        // for the related models and returns the relationship instance which will
+        // actually be responsible for retrieving and hydrating every relations.
+        $ownerKey = $ownerKey ?: $instance->getKeyName();
+
+        return new BelongsTo(
+            $instance->newQuery(), $this, $foreignKey, $ownerKey, $relation
+        );
+    }
+
+    protected function newRelatedInstance($class)
+    {
+        return tap(new $class, function ($instance) {
+            if (! $instance->getConnectionName()) {
+                $instance->setConnection($this->connection);
+            }
+        });
+    }
+
 
 
 }

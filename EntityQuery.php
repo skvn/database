@@ -53,11 +53,14 @@ class EntityQuery
     public function setModel(Entity $model)
     {
         $this->model = $model;
-
         $this->query->from($model->getTable());
-
         return $this;
     }
+
+//    function getModel()
+//    {
+//        return $this->model;
+//    }
 
 //    public function whereKey($id)
 //    {

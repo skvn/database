@@ -15,6 +15,8 @@ abstract class Entity implements \ArrayAccess
     protected $table;
     protected $primaryKey = 'id';
     protected $connectionName = 'default';
+    protected $timestamps = false;
+
 
     protected $connection;
 
@@ -26,10 +28,91 @@ abstract class Entity implements \ArrayAccess
     protected $dates = [];
     protected $relations = [];
 
+    const COLUMN_CREATED_AT = 'created_at';
+    const COLUMN_UPDATED_AT = 'updated_at';
+
+
 
     public function __construct(array $attributes = [])
     {
         $this->fill($attributes);
+    }
+
+    protected function onBeforeSave() {}
+    protected function onBeforeUpdate() {}
+    protected function onAfterUpdate() {}
+    protected function onBeforeInsert() {}
+    protected function onAfterInsert() {}
+    protected function onAfterSave() {}
+    protected function onBeforeDelete() {}
+    protected function onAfterDelete() {}
+
+    public function save()
+    {
+        $query = $this->newQuery();
+        if ($this->onBeforeSave() === false) {
+            return false;
+        }
+        if ($this->timestamps) {
+            $this->updateTimestamps();
+        }
+        if ($this->exists) {
+            if ($this->onBeforeUpdate() === false) {
+                return false;
+            }
+            $dirty = $this->getDirty();
+            if (!empty($dirty)) {
+                $query->where($this->primaryKey, $this->original[$this->primaryKey] ?? $this->getAttribute($this->primaryKey));
+                $query->update($dirty);
+                $this->onAfterUpdate();
+            }
+        } else {
+            if ($this->onBeforeInsert() === false) {
+                return false;
+            }
+            if (empty($this->attributes)) {
+                return true;
+            }
+            $id = $query->insert($this->attributes);
+            $this->setAttribute($this->primaryKey, $id);
+            $this->exists = true;
+            $this->onAfterInsert();
+        }
+        $this->onAfterSave();
+        $this->syncOriginal();
+
+
+        return true;
+    }
+
+    public function delete()
+    {
+        if (empty($this->primaryKey)) {
+            throw new ImplementationException('No primary key defined on model ' . get_class($this));
+        }
+        if (! $this->exists) {
+            return false;
+        }
+        if ($this->onBeforeDelete() === false) {
+            return false;
+        }
+        $query = $this->newQuery();
+        $query->where($this->primaryKey, $this->getId());
+        $query->delete();
+        $this->exists = false;
+        $this->onAfterDelete();
+        return true;
+    }
+
+    protected function updateTimestamps()
+    {
+        $time = time();
+        if (! $this->isDirty(static :: COLUMN_UPDATED_AT)) {
+            $this->{static :: COLUMN_UPDATED_AT} = $time;
+        }
+        if (! $this->exists && ! $this->isDirty(static :: COLUMN_CREATED_AT)) {
+            $this->{static :: COLUMN_CREATED_AT} = $time;
+        }
     }
 
     public function syncOriginal()

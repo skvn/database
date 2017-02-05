@@ -3,6 +3,7 @@
 namespace Skvn\Database;
 
 use Skvn\Base\Exceptions\NotFoundException;
+use Skvn\Base\Helpers\StringHelper;
 
 class EntityQuery
 {
@@ -15,6 +16,38 @@ class EntityQuery
     {
         $this->query = $query;
     }
+
+
+    public function with($relations)
+    {
+        $eagerLoad = $this->parseWithRelations(is_array($relations) ? $relations : func_get_args());
+        $this->eagerLoad = array_merge($this->eagerLoad, $eagerLoad);
+        return $this;
+    }
+
+    protected function parseWithRelations(array $relations)
+    {
+        $results = [];
+        foreach ($relations as $name => $constraints) {
+            if (is_numeric($name)) {
+                $name = $constraints;
+                $constraints = function() {};
+            }
+            if (StringHelper :: contains('.', $name)) {
+                $path = "";
+                foreach (explode('.', $name) as $part) {
+                    $path .= ((!empty($path) ? '.' : '') . $part);
+                    if (!isset($results[$path])) {
+                        $results[$path] = function() {};
+                    }
+                }
+            }
+            $results[$name] = $constraints;
+        }
+        return $results;
+    }
+
+
 
 
     public function setModel(Entity $model)
@@ -99,6 +132,17 @@ class EntityQuery
         ]);
     }
 
+    public function firstOrFail()
+    {
+        if (! is_null($model = $this->first())) {
+            return $model;
+        }
+        throw new NotFoundException('Model ' . get_class($this->model) . ' not found', [
+            'model' => $this->model
+        ]);
+    }
+
+
     public function findOrNew($id)
     {
         if (! is_null($model = $this->find($id))) {
@@ -121,6 +165,18 @@ class EntityQuery
         $instance->save();
         return $instance;
     }
+
+    public function fromQuery($sql, $bindings = [])
+    {
+        $this->query->rawSql($sql, $bindings);
+        return $this->all();
+    }
+
+    function findBySql($sql, $bindings = [])
+    {
+        return $this->fromQuery($sql, $bindings);
+    }
+
 
     function all()
     {

@@ -27,6 +27,7 @@ class QueryBuilder
     ];
 
     protected $queryBindings = [];
+    protected $rawSql;
 
 
 
@@ -962,10 +963,16 @@ class QueryBuilder
 
     }
 
+    function rawSql($sql, $bindings = [])
+    {
+        $this->rawSql = $sql;
+        $this->queryBindings = $bindings;
+        return $this;
+    }
 
     public function toSql()
     {
-        return $this->compileSelect();
+        return !empty($this->rawSql) ? $this->rawSql : $this->compileSelect();
     }
 
     public function find($id, $columns = ['*'], $pk = 'id')

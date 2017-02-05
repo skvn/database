@@ -165,9 +165,12 @@ class QueryBuilder
 
     public function where($column, $operator = null, $value = null, $boolean = 'and')
     {
-//        if (is_array($column)) {
-//            return $this->addArrayOfWheres($column, $boolean);
-//        }
+        if (is_array($column)) {
+            foreach ($column as $k => $v) {
+                $this->where($k, '=', $v, $boolean);
+            }
+            return $this;
+        }
 
         if (func_num_args() == 2) {
             $value = $operator;
@@ -1100,6 +1103,11 @@ class QueryBuilder
     {
         $bool = strtolower($connector);
         $this->where(StringHelper::snake($segment), '=', $parameters[$index], $bool);
+    }
+
+    function getConnection()
+    {
+        return $this->connection;
     }
 
 

@@ -6,7 +6,7 @@ use PDO;
 use PDOException;
 use Skvn\Base\Container;
 
-class Dispatcher
+class DatabaseDispatcher
 {
     private $connections = [];
     private $container = null;

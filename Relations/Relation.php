@@ -5,8 +5,12 @@ namespace Skvn\Database\Relations;
 use Skvn\Database\EntityQuery;
 use Skvn\Database\Entity;
 
+
 abstract class Relation
 {
+    /**
+     * @var \Skvn\Database\EntityQuery
+     */
     protected $query;
     protected $owner;
     protected $related;
@@ -15,7 +19,7 @@ abstract class Relation
     protected $multiple = false;
 
 
-    public function __construct(Entity $owner, $relatedClass, $link = null)
+    public function __construct(Entity $owner, $relatedClass, $link = null, $args = [])
     {
         $this->owner = $owner;
         $this->related = new $relatedClass;
@@ -24,6 +28,11 @@ abstract class Relation
             list($this->foreignKey, $this->ownerKey) = each($link);
         } else {
             $this->defaultLink();
+        }
+        foreach ($args as $k => $v) {
+            if (property_exists($this, $k)) {
+                $this->$k = $v;
+            }
         }
 
         $this->addCriteria();
@@ -37,6 +46,22 @@ abstract class Relation
         $method = $this->multiple ? 'all' : 'one';
         return $this->query->$method();
     }
+
+    public function __call($method, $parameters)
+    {
+        $result = call_user_func_array([$this->query, $method], $parameters);
+        if ($result === $this->query) {
+            return $this;
+        }
+        return $result;
+    }
+
+    public function __clone()
+    {
+        $this->query = clone $this->query;
+    }
+
+
 
 
 }

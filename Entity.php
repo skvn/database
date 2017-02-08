@@ -456,14 +456,10 @@ abstract class Entity implements \ArrayAccess
         return $this->table;
     }
 
-    public function getQualifiedKeyName()
+    function getPrimaryKeyName($withTable = false)
     {
-        return $this->getTable().'.'.$this->primaryKey;
-    }
-
-    function getPrimaryKeyName()
-    {
-        return $this->primaryKey;
+        $prefix = $withTable ? ($this->getTable() . '.') : '';
+        return $prefix . $this->primaryKey;
     }
 
     function getConnection()
@@ -494,6 +490,13 @@ abstract class Entity implements \ArrayAccess
     {
         return new Relations\HasMany($this, $relatedClass, $link);
     }
+
+    function belongsToMany($relatedClass, $link = null, $table = null)
+    {
+        return new Relations\BelongsToMany($this, $relatedClass, $link, ['viaTable' => $table]);
+    }
+
+
 
 
 

@@ -5,6 +5,13 @@ namespace Skvn\Database;
 use Skvn\Base\Exceptions\NotFoundException;
 use Skvn\Base\Helpers\StringHelper;
 
+/**
+ * Class EntityQuery
+ * @package Skvn\Database
+ *
+ * @method EntityQuery join($table, $first, $second = null, $type = 'inner')
+ * @see \Skvn\Database\QueryBuilder::join()
+ */
 class EntityQuery
 {
     protected $query;
@@ -94,13 +101,13 @@ class EntityQuery
 
     function findOne($id)
     {
-        $this->query->where($this->model->getQualifiedKeyName(), $id);
+        $this->query->where($this->model->getPrimaryKeyName(true), $id);
         return $this->one();
     }
 
     function findByIds($ids)
     {
-        $this->query->whereIn($this->model->getQualifiedKeyName(), $ids);
+        $this->query->whereIn($this->model->getPrimaryKeyName(true), $ids);
         return $this->all();
     }
 

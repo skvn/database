@@ -2,14 +2,14 @@
 
 namespace Skvn\Database\Relations;
 
-use Skvn\Base\Helpers\StringHelper;
+use Skvn\Base\Helpers\Str;
 
 class HasOne extends Relation
 {
 
     protected function defaultLink()
     {
-        $this->foreignKey = StringHelper :: classBasename($this->owner) . '_id';
+        $this->foreignKey = Str :: classBasename($this->owner) . '_id';
         $this->ownerKey = $this->owner->getPrimaryKeyName();
     }
 

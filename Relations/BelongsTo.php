@@ -2,14 +2,14 @@
 
 namespace Skvn\Database\Relations;
 
-use Skvn\Base\Helpers\StringHelper;
+use Skvn\Base\Helpers\Str;
 
 class BelongsTo extends Relation
 {
 
     protected function defaultLink()
     {
-        $this->ownerKey = StringHelper :: classBasename($this->related) . '_id';
+        $this->ownerKey = Str :: classBasename($this->related) . '_id';
         $this->foreignKey = $this->related->getPrimaryKeyName();
     }
 

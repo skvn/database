@@ -9,7 +9,7 @@ use Exception;
 use PDOException;
 use DateTimeInterface;
 use Skvn\Base\Container;
-use Skvn\Base\StringHelper;
+use Skvn\Base\Str;
 
 class Connection
 {

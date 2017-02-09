@@ -2,7 +2,7 @@
 
 namespace Skvn\Database\Relations;
 
-use Skvn\Base\Helpers\StringHelper;
+use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\ImplementationException;
 
 class BelongsToMany extends Relation
@@ -12,15 +12,14 @@ class BelongsToMany extends Relation
 
     function viaTable($table)
     {
-        var_dump($table);
         $this->viaTable = $table;
         return $this;
     }
 
     protected function defaultLink()
     {
-        $this->ownerKey = StringHelper :: classBasename($this->owner) . '_id';
-        $this->foreignKey = StringHelper :: classBasename($this->related) . '_id';
+        $this->ownerKey = Str :: classBasename($this->owner) . '_id';
+        $this->foreignKey = Str :: classBasename($this->related) . '_id';
     }
 
     protected function addCriteria()

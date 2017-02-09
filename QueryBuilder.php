@@ -2,7 +2,7 @@
 
 namespace Skvn\Database;
 
-use Skvn\Base\Helpers\StringHelper;
+use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\InvalidArgumentException;
 use Skvn\Base\Exceptions\NotFoundException;
 
@@ -198,7 +198,7 @@ class QueryBuilder
             return $this->whereNull($column, $boolean, $operator != '=');
         }
 
-//        if (StringHelper :: contains('->', $column) && is_bool($value)) {
+//        if (Str :: contains('->', $column) && is_bool($value)) {
 //            $value = new Expression($value ? 'true' : 'false');
 //        }
 
@@ -1074,7 +1074,7 @@ class QueryBuilder
 
     public function __call($method, $parameters)
     {
-        if (StringHelper::startsWith('where', $method)) {
+        if (Str :: startsWith('where', $method)) {
             return $this->dynamicWhere($method, $parameters);
         }
         throw new NotFoundException("Call to undefined method " .static :: class. "::{$method}()");
@@ -1109,7 +1109,7 @@ class QueryBuilder
     protected function addDynamic($segment, $connector, $parameters, $index)
     {
         $bool = strtolower($connector);
-        $this->where(StringHelper::snake($segment), '=', $parameters[$index], $bool);
+        $this->where(Str :: snake($segment), '=', $parameters[$index], $bool);
     }
 
     function getConnection()

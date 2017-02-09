@@ -3,13 +3,15 @@
 namespace Skvn\Database;
 
 use Skvn\Base\Exceptions\NotFoundException;
-use Skvn\Base\Helpers\StringHelper;
+use Skvn\Base\Helpers\Str;
 
 /**
  * Class EntityQuery
  * @package Skvn\Database
  *
  * @method EntityQuery join($table, $first, $second = null, $type = 'inner')
+ * @see \Skvn\Database\QueryBuilder::join()
+ * @method EntityQuery where($column, $operator = null, $value = null, $boolean = 'and')
  * @see \Skvn\Database\QueryBuilder::join()
  */
 class EntityQuery
@@ -40,7 +42,7 @@ class EntityQuery
                 $name = $constraints;
                 $constraints = function() {};
             }
-            if (StringHelper :: contains('.', $name)) {
+            if (Str :: contains('.', $name)) {
                 $path = "";
                 foreach (explode('.', $name) as $part) {
                     $path .= ((!empty($path) ? '.' : '') . $part);

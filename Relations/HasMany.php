@@ -2,7 +2,7 @@
 
 namespace Skvn\Database\Relations;
 
-use Skvn\Base\Helpers\StringHelper;
+use Skvn\Base\Helpers\Str;
 
 class HasMany extends Relation
 {
@@ -11,7 +11,7 @@ class HasMany extends Relation
     protected function defaultLink()
     {
         $this->ownerKey = $this->owner->getPrimaryKey();
-        $this->foreignKey = StringHelper :: classBasename($this->owner) . '_id';
+        $this->foreignKey = Str :: classBasename($this->owner) . '_id';
     }
 
     protected function addCriteria()

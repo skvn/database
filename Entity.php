@@ -3,7 +3,7 @@
 namespace Skvn\Database;
 
 use Skvn\Base\Traits\ArrayAccessImpl;
-use Skvn\Base\Helpers\StringHelper;
+use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\ImplementationException;
 use Skvn\Base\Exceptions\InvalidArgumentException;
 use Skvn\Base\Container;
@@ -234,7 +234,7 @@ abstract class Entity implements \ArrayAccess
 
     protected function mutatorName($key, $type = 'get')
     {
-        return $type . StringHelper :: studly($key) . 'Attribute';
+        return $type . Str :: studly($key) . 'Attribute';
     }
 
     protected function hasMutator($key, $type = 'get')
@@ -296,7 +296,7 @@ abstract class Entity implements \ArrayAccess
         $list = [];
         foreach (get_class_methods(static :: class) as $method) {
             if (preg_match('#^get(.+)Attribute$#', $method, $m)) {
-                $list[StringHelper :: snake($m[1])] = $method;
+                $list[Str :: snake($m[1])] = $method;
             }
         }
         return $list;

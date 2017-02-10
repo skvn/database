@@ -2,7 +2,7 @@
 
 namespace Skvn\Database;
 
-use Skvn\Base\Traits\ArrayAccessImpl;
+use Skvn\Base\Traits\ArrayOrObjectAccessImpl;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\ImplementationException;
 use Skvn\Base\Exceptions\InvalidArgumentException;
@@ -10,7 +10,7 @@ use Skvn\Base\Container;
 
 abstract class Entity implements \ArrayAccess
 {
-    use ArrayAccessImpl;
+    use ArrayOrObjectAccessImpl;
 
     protected $table;
     protected $primaryKey = 'id';

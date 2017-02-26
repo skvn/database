@@ -5,15 +5,20 @@ namespace Skvn\Database;
 use PDO;
 use PDOException;
 use Skvn\Base\Container;
+use Skvn\Base\Traits\ArrayOrObjectAccessImpl;
 
 class DatabaseDispatcher
 {
+    use ArrayOrObjectAccessImpl;
+
     private $connections = [];
     private $container = null;
+    private $config = [];
 
-    function __construct()
+    function __construct($config = [])
     {
         $this->container = Container :: getInstance();
+        $this->config = $config;
     }
 
     function connection($name = "default", $alias = null)
@@ -22,7 +27,7 @@ class DatabaseDispatcher
             $alias = $name;
         }
         if (!isset($this->connections[$alias])) {
-            $config = $this->container['config']['database.' . $name];
+            $config = $this->config['connections'][$name] ?? [];
             if (!$this->validateConfig($config)) {
                 throw new Exceptions\ConfigException('Configuration for connection ' . $name . ' is empty or invalid');
             }
@@ -43,7 +48,8 @@ class DatabaseDispatcher
                     $pdo->exec('set names ' . $config['charset']);
                 }
                 $pdo->exec("set sql_mode='" . ($config['sql_mode'] ?? '') . "'");
-                $this->connections[$alias] = new Connection($pdo, $config);
+                $class = $config['class'] ?? Connection :: class;
+                $this->connections[$alias] = new $class($pdo, $config);
             }
             catch (PDOException $e) {
                 $this->container['events']->trigger(new Events\ConnectionError(['error' => $e->getMessage()]));
@@ -69,9 +75,17 @@ class DatabaseDispatcher
         unset($this->connections[$name]);
     }
 
+    function get($name)
+    {
+        return $this->connection($name);
+    }
+
 
     private function validateConfig($config)
     {
+        if (empty($config['dsn'])) {
+            return false;
+        }
         return true;
     }
 }

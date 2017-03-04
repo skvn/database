@@ -8,11 +8,15 @@ use Closure;
 use Exception;
 use PDOException;
 use DateTimeInterface;
-use Skvn\Base\Container;
 use Skvn\Base\Str;
+use Skvn\Base\Traits\AppHolder;
+
 
 class Connection
 {
+    use AppHolder;
+
+
     protected $pdo;
     protected $config = [];
     protected $affectedRows = 0;
@@ -22,7 +26,6 @@ class Connection
     {
         $this->pdo = $pdo;
         $this->config = $config;
-        $this->events = Container :: getInstance()['events'];
     }
 
     public function table($table)
@@ -62,7 +65,7 @@ class Connection
     public function insert($table, $values)
     {
         $id = $this->table($table)->insert($values);
-        $this->events->trigger(new Events\Insert([
+        $this->app->triggerEvent(new Events\Insert([
             'table' => $table,
             'values' => $values,
             'new_id' => $id
@@ -76,7 +79,7 @@ class Connection
         $query = $this->table($table)->where($pk, '=', $id);
         unset($values[$pk]);
         $rows = $query->update($values);
-        $this->events->trigger(new Events\Update([
+        $this->app->triggerEvent(new Events\Update([
             'table' => $table,
             'id' => $id,
             'values' => $values
@@ -117,8 +120,8 @@ class Connection
             'connection' => $this
         ];
 
-        if ($this->events->trigger(new Events\QueryReceived($evt)) === false) {
-            $this->events->trigger(new Events\QuerySkipped($evt));
+        if ($this->app->triggerEvent(new Events\QueryReceived($evt)) === false) {
+            $this->app->triggerEvent(new Events\QuerySkipped($evt));
             return true;
         }
 
@@ -140,11 +143,11 @@ class Connection
         }
         catch (PDOException $e) {
             $evt['error'] = $e->getMessage();
-            $this->events->trigger(new Events\QueryError($evt));
+            $this->app->triggerEvent(new Events\QueryError($evt));
             throw new Exceptions\QueryException($e->getMessage());
         }
         $evt['time'] = round(microtime(true) - $t, 4);
-        $this->events->trigger(new Events\QueryExecuted($evt));
+        $this->app->triggerEvent(new Events\QueryExecuted($evt));
         return $statement;
     }
 

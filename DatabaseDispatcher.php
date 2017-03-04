@@ -4,20 +4,19 @@ namespace Skvn\Database;
 
 use PDO;
 use PDOException;
-use Skvn\Base\Container;
 use Skvn\Base\Traits\ArrayOrObjectAccessImpl;
+use Skvn\Base\Traits\AppHolder;
 
 class DatabaseDispatcher
 {
     use ArrayOrObjectAccessImpl;
+    use AppHolder;
 
     private $connections = [];
-    private $container = null;
     private $config = [];
 
     function __construct($config = [])
     {
-        $this->container = Container :: getInstance();
         $this->config = $config;
     }
 
@@ -50,9 +49,10 @@ class DatabaseDispatcher
                 $pdo->exec("set sql_mode='" . ($config['sql_mode'] ?? '') . "'");
                 $class = $config['class'] ?? Connection :: class;
                 $this->connections[$alias] = new $class($pdo, $config);
+                $this->connections[$alias]->setApp($this->app);
             }
             catch (PDOException $e) {
-                $this->container['events']->trigger(new Events\ConnectionError(['error' => $e->getMessage()]));
+                $this->app->triggerEvent(new Events\ConnectionError(['error' => $e->getMessage()]));
                 throw $e;
             }
         }

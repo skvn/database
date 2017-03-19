@@ -465,7 +465,7 @@ abstract class Entity implements \ArrayAccess
     function getConnection()
     {
         if (is_null($this->connection)) {
-            $this->connection = Container :: getInstance()->get('db')->connection($this->connectionName);
+            $this->connection = Container :: getInstance()->get('database')->connection($this->connectionName);
         }
         return $this->connection;
     }

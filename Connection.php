@@ -46,6 +46,13 @@ class Connection
         return $row;
     }
 
+    public function selectScalar($query, $bindings = [])
+    {
+        $row = $this->selectOne($query, $bindings);
+        return !empty($row) ? array_shift($row) : null;
+    }
+
+
     public function select($query, $bindings = [])
     {
         $statement = $this->execute($query, $bindings);

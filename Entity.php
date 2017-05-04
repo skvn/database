@@ -8,6 +8,13 @@ use Skvn\Base\Exceptions\ImplementationException;
 use Skvn\Base\Exceptions\InvalidArgumentException;
 use Skvn\Base\Container;
 
+/**
+ * Class Entity
+ * @package Skvn\Database
+ *
+ * @method Entity findOne($id)
+ * @see \Skvn\Database\EntityQuery::findOne()
+ */
 abstract class Entity implements \ArrayAccess
 {
     use ArrayOrObjectAccessImpl;

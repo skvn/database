@@ -56,7 +56,9 @@ class Connection
     public function select($query, $bindings = [])
     {
         $statement = $this->execute($query, $bindings);
-        return $statement->fetchAll();
+        $recordset = $statement->fetchAll();
+        $statement->closeCursor();
+        return $recordset;
     }
 
     public function iterator($query, $bindings = [])

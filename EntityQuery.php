@@ -217,12 +217,14 @@ class EntityQuery
         return $this->one();
     }
 
-    function objectify(array $attributes = [])
+    function objectify($attributes = [])
     {
         $exists = !empty($attributes[$this->model->getPrimaryKeyName()]);
         $model = $this->model->newInstance([], $exists);
         $model->setConnection($this->query->getConnection());
-        $model->fillRaw($attributes, true);
+        if (!empty($attributes)) {
+            $model->fillRaw($attributes, true);
+        }
         return $model;
     }
 

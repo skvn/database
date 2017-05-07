@@ -229,7 +229,10 @@ class Connection
 
     public function rollBack()
     {
-        return $this->pdo->rollBack();
+        if ($this->pdo->inTransaction())
+        {
+            return $this->pdo->rollBack();
+        }
     }
 
     public function transaction(\Closure $callback)

@@ -61,6 +61,24 @@ class Connection
         return $recordset;
     }
 
+    public function selectColumn($column, $query, $bindings = [])
+    {
+        return array_map(function($row) use ($column) {
+            return $row[$column] ?? null;
+        }, $this->select($query, $bindings));
+    }
+
+    public function selectIndexed($index, $query, $bindings = [])
+    {
+        $rs = $this->select($query, $bindings);
+        $indexed = [];
+        foreach ($rs as $r) {
+            $indexed[$r[$index] ?? 0] = $r;
+        }
+        unset($rs);
+        return $indexed;
+    }
+
     public function iterator($query, $bindings = [])
     {
         $statement = $this->execute($query, $bindings);

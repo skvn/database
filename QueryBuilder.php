@@ -1109,7 +1109,7 @@ class QueryBuilder
     protected function addDynamic($segment, $connector, $parameters, $index)
     {
         $bool = strtolower($connector);
-        $this->where(Str :: snake($segment), '=', $parameters[$index], $bool);
+        $this->where(Str :: underscore($segment), '=', $parameters[$index], $bool);
     }
 
     function getConnection()

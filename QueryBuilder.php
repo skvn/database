@@ -1077,7 +1077,7 @@ class QueryBuilder
         if (Str :: startsWith('where', $method)) {
             return $this->dynamicWhere($method, $parameters);
         }
-        throw new NotFoundException("Call to undefined method " .static :: class. "::{$method}()");
+        throw new \BadMethodCallException("Call to undefined method " .static :: class. "::{$method}()");
     }
 
     public function dynamicWhere($method, $parameters)

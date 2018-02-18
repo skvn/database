@@ -1021,7 +1021,7 @@ class QueryBuilder
         $page = 1;
         do {
             $results = $this->forPage($page, $count)->get();
-            $countResults = $results->count();
+            $countResults = count($results);
             if ($countResults == 0) {
                 break;
             }

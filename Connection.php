@@ -99,6 +99,17 @@ class Connection
         ]));
         return $id;
     }
+    
+    public function replace($table, $values)
+    {
+        $id = $this->table($table)->replace($values);
+        $this->app->triggerEvent(new Events\Replace([
+            'table' => $table,
+            'values' => $values,
+            'new_id' => $id
+        ]));
+        return $id;
+    }
 
     public function update($table, $values, $pk = 'id')
     {

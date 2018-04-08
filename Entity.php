@@ -168,7 +168,7 @@ abstract class Entity implements \ArrayAccess
         }
 
         if (!empty($value)) {
-            if (array_key_exists($key, $this->casts) || array_key_exists($key, $this->dates)) {
+            if (array_key_exists($key, $this->dates)) {
                 $value = strtotime($value);
             }
             if (in_array($this->casts[$key] ?? null, ['array', 'object', 'json'])) {

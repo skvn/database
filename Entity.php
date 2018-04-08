@@ -171,9 +171,9 @@ abstract class Entity implements \ArrayAccess
             if (array_key_exists($key, $this->dates)) {
                 $value = strtotime($value);
             }
-            if (in_array($this->casts[$key] ?? null, ['array', 'object', 'json'])) {
-                $value = json_encode($value);
-            }
+        }
+        if (in_array($this->casts[$key] ?? null, ['array', 'object', 'json'])) {
+            $value = json_encode($value);
         }
         $this->attributes[$key] = $value;
         return $this;

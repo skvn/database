@@ -976,7 +976,7 @@ class QueryBuilder
 
     public function toSql()
     {
-        return !empty($this->rawSql) ? $this->rawSql : $this->compileSelect();
+        return !empty($this->rawSql) ? ($this->rawSql . ' ' . $this->compileLimit() . ' ' . $this->compileOffset()) : $this->compileSelect();
     }
 
     public function find($id, $columns = ['*'], $pk = 'id')
@@ -1019,7 +1019,7 @@ class QueryBuilder
 
     public function chunk($count, callable $callback)
     {
-        if (empty($this->orders)) {
+        if (empty($this->orders) && empty($this->rawSql)) {
             throw new QueryException('Order by is required for chunked resultset processing');
         }
         $page = 1;

@@ -5,6 +5,7 @@ namespace Skvn\Database;
 use Skvn\Base\Helpers\Str;
 use Skvn\Base\Exceptions\InvalidArgumentException;
 use Skvn\Base\Exceptions\NotFoundException;
+use Skvn\Database\Exceptions\QueryException;
 
 
 class QueryBuilder
@@ -1019,7 +1020,7 @@ class QueryBuilder
     public function chunk($count, callable $callback)
     {
         if (empty($this->orders)) {
-            throw new Exception("Order by is required for chunked resultset processing");
+            throw new QueryException('Order by is required for chunked resultset processing');
         }
         $page = 1;
         do {

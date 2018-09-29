@@ -45,6 +45,11 @@ abstract class Entity implements \ArrayAccess
     {
         $this->fill($attributes);
     }
+    
+    static function make($id = null)
+    {
+        return static::findOne($id);
+    }
 
     protected function onBeforeSave() {}
     protected function onBeforeUpdate() {}

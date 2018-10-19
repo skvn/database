@@ -713,12 +713,11 @@ class QueryBuilder
         $this->offset = max(0, $value);
         return $this;
     }
-
+    
     protected function compileOffset()
     {
-        return 'offset '.(int) $this->offset;
+        
     }
-
 
     public function take($value)
     {
@@ -735,7 +734,13 @@ class QueryBuilder
 
     protected function compileLimit()
     {
-        return 'limit '.(int) $this->limit;
+        $str = 'limit ';
+        if (!empty($this->offset)) {
+            $str .= intval($this->offset) . ', ';
+        }
+        $str .= intval($this->limit);
+        
+        return $str;;
     }
 
 

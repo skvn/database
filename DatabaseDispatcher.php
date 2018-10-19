@@ -48,7 +48,7 @@ class DatabaseDispatcher
                 }
                 $pdo->exec("set sql_mode='" . ($config['sql_mode'] ?? '') . "'");
                 $class = $config['class'] ?? Connection :: class;
-                $this->connections[$alias] = new $class($pdo, $config);
+                $this->connections[$alias] = new $class($pdo, $config, $name, $this);
                 $this->connections[$alias]->setApp($this->app);
             }
             catch (PDOException $e) {

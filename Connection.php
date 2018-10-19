@@ -8,7 +8,7 @@ use Closure;
 use Exception;
 use PDOException;
 use DateTimeInterface;
-use Skvn\Base\Str;
+use Skvn\Base\Helpers\Str;
 use Skvn\Base\Traits\AppHolder;
 
 
@@ -21,11 +21,26 @@ class Connection
     protected $config = [];
     protected $affectedRows = 0;
     protected $events;
+    protected $name;
+    protected $dispatcher;
 
-    public function __construct(PDO $pdo, array $config = [])
+    public function __construct(PDO $pdo, array $config = [], $name = null, $dispatcher = null)
     {
         $this->pdo = $pdo;
         $this->config = $config;
+        $this->name = $name;
+        $this->dispatcher = $dispatcher;
+    }
+    
+    public function reconnect($attempt)
+    {
+        if (empty($this->name) || empty($this->dispatcher)) {
+            return false;
+        }
+        $this->pdo = null;
+        $conn = $this->dispatcher->connection($this->name, $this->name . '_attempt_' . $attempt);
+        $this->pdo = $conn->getPDO();
+        return true;
     }
 
     public function table($table)
@@ -164,25 +179,40 @@ class Connection
         }
 
         $t = microtime(true);
-        $statement = false;
-        try {
-            if ($bindings === false) {
-                $this->affectedRows = $this->pdo->exec($query);
-            } else {
-                list($query, $bindings) = $this->flatArrayBindings($query, $bindings);
-                $evt['query']= $query;
-                $evt['bindings'] = $bindings;
-                $statement = $this->pdo->prepare($query, [PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true]);
-                $statement->setFetchMode(PDO :: FETCH_ASSOC);
-                $this->bindValues($statement, $bindings);
-                $statement->execute();
-                $this->affectedRows = $statement->rowCount();
+        $attempt = 1;
+        while ($attempt <= 3) {
+            $statement = false;
+            try {
+                if ($bindings === false) {
+                    $this->affectedRows = $this->pdo->exec($query);
+                } else {
+                    list($query, $bindings) = $this->flatArrayBindings($query, $bindings);
+                    $evt['query']= $query;
+                    $evt['bindings'] = $bindings;
+                    $statement = $this->pdo->prepare($query, [PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => true]);
+                    $statement->setFetchMode(PDO :: FETCH_ASSOC);
+                    $this->bindValues($statement, $bindings);
+                    $statement->execute();
+                    $this->affectedRows = $statement->rowCount();
+                    break;
+                }
             }
-        }
-        catch (PDOException $e) {
-            $evt['error'] = $e->getMessage();
-            $this->app->triggerEvent(new Events\QueryError($evt));
-            throw new Exceptions\QueryException($e->getMessage());
+            catch (PDOException $e) {
+                $evt['error'] = $e->getMessage();
+                if (Str::pos('has gone away', $e->getMessage()) === false || $attempt >= 3) {
+                    $this->app->triggerEvent(new Events\QueryError($evt));
+                    throw new Exceptions\QueryException($e->getMessage());
+                }
+                $attempt++;
+                $event['name'] = $this->name;
+                $event['attempt'] = $attempt;
+                if ($this->reconnect($attempt) === false) {
+                    $this->app->triggerEvent(new Events\ReconnectError($evt));
+                    $this->app->triggerEvent(new Events\QueryError($evt));
+                    throw new Exceptions\QueryException($e->getMessage());
+                }
+                $this->app->triggerEvent(new Events\Reconnected($evt));
+            }
         }
         $evt['time'] = round(microtime(true) - $t, 4);
         $this->app->triggerEvent(new Events\QueryExecuted($evt));
@@ -275,6 +305,11 @@ class Connection
             $this->rollBack();
             return false;
         }
+    }
+    
+    public function getPDO()
+    {
+        return $this->pdo;
     }
 
 

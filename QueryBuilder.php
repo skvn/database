@@ -758,7 +758,7 @@ class QueryBuilder
         return $this->insert($values, 'replace');
     }
 
-    public function insert(array $values, $stmt = 'insert')
+    public function insert(array $values, $stmt = 'insert', $transform = null)
     {
         if (empty($values)) {
             return true;
@@ -771,12 +771,12 @@ class QueryBuilder
                 $values[$key] = $value;
             }
         }
-        $query = $this->compileInsert($values, $stmt);
+        $query = $this->compileInsert($values, $stmt, $transform);
         $this->connection->statement($query, $this->queryBindings);
         return $this->connection->lastInsertId();
     }
 
-    protected function compileInsert(array $values, $stmt = 'insert')
+    protected function compileInsert(array $values, $stmt = 'insert', $transform = null)
     {
         $this->queryBindings = [];
         $table = $this->quoteTable($this->from);
@@ -785,7 +785,11 @@ class QueryBuilder
             return '(' . $this->compileValueList($v) . ')';
         }, $values);
         $parameters = implode(', ', $paramArr);
-        return $stmt . " into $table ($columns) values $parameters";
+        $query = $stmt . " into $table ($columns) values $parameters";
+        if (is_callable($transform)) {
+            $query = $transform($query, $values);
+        }
+        return $query;
     }
 
     protected function compileColumnList(array $columns)

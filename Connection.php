@@ -104,9 +104,9 @@ class Connection
         $statement->closeCursor();
     }
 
-    public function insert($table, $values)
+    public function insert($table, $values, $transform = null)
     {
-        $id = $this->table($table)->insert($values);
+        $id = $this->table($table)->insert($values, 'insert', $transform);
         $this->app->triggerEvent(new Events\Insert([
             'table' => $table,
             'values' => $values,

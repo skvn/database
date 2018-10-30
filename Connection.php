@@ -204,8 +204,8 @@ class Connection
                     throw new Exceptions\QueryException($e->getMessage());
                 }
                 $attempt++;
-                $event['name'] = $this->name;
-                $event['attempt'] = $attempt;
+                $evt['name'] = $this->name;
+                $evt['attempt'] = $attempt;
                 if ($this->reconnect($attempt) === false) {
                     $this->app->triggerEvent(new Events\ReconnectError($evt));
                     $this->app->triggerEvent(new Events\QueryError($evt));

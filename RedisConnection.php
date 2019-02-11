@@ -3,10 +3,12 @@
 namespace Skvn\Database;
 
 use Skvn\Base\Traits\ConstructorConfig;
+use Skvn\Base\Traits\AppHolder;
 
 class RedisConnection
 {
     use ConstructorConfig;
+    use AppHolder;
 
     private $client = null;
 

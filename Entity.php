@@ -280,7 +280,7 @@ abstract class Entity implements \ArrayAccess
 
     function isFillable($key)
     {
-
+        return true;
     }
 
     public function getKey()

@@ -16,7 +16,7 @@ class RedisConnection
     {
         if (is_null($this->client)) {
             $this->client = new \Redis();
-            if (!$this->client->pconnect($this->getConfig('host'), $this->getConfig('port'))) {
+            if (!$this->client->connect($this->getConfig('host'), $this->getConfig('port'))) {
                 throw new Exceptions\RedisException($this->client->getLastError());
             }
             if (!$this->client->select($this->getConfig('database'))) {

@@ -688,6 +688,15 @@ class QueryBuilder
         return $this;
     }
 
+    public function unorder($column = null)
+    {
+        if (!empty($column)) {
+            $this->parts['orders'] = array_filter($this->parts['orders'], function ($o) { return $o['column'] !== $column; });
+        } else {
+            $this->parts['orders'] = [];
+        }
+    }
+
     protected function compileOrders()
     {
         if (empty($this->orders)) {
@@ -1046,6 +1055,16 @@ class QueryBuilder
 
         return true;
     }
+
+    public function forPageAfterId($perPage = 15, $lastId = 0, $column = 'id')
+    {
+        $this->unorder($column);
+
+        return $this->where($column, '>', $lastId)
+                    ->orderBy($column, 'asc')
+                    ->take($perPage);
+    }
+
 
     public function chunkById($count, callable $callback, $column = 'id', $alias = null)
     {

@@ -743,6 +743,9 @@ class QueryBuilder
 
     protected function compileLimit()
     {
+        if (is_null($this->limit)) {
+            return '';
+        }
         $str = 'limit ';
         if (!empty($this->offset)) {
             $str .= intval($this->offset) . ', ';

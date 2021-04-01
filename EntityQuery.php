@@ -118,7 +118,7 @@ class EntityQuery
         if (is_array($id)) {
             return $this->findByIds($id);
         }
-        return $this->findOne();
+        return $this->findOne($id);
     }
 
     public function findMany($ids)

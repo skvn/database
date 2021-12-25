@@ -388,6 +388,7 @@ abstract class Entity implements \ArrayAccess
         $this->setAttribute($key, $value);
     }
 
+    #[\ReturnTypeWillChange]
     public function offsetUnset($offset)
     {
         unset($this->$offset);
